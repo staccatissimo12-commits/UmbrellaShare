@@ -34,17 +34,41 @@ export default function AdvertiserSection() {
 
   const onSubmit = async (data: AdvertiserFormData) => {
     setIsSubmitting(true);
-    console.log("광고 신청:", data);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "신청 완료!",
-      description: "광고 신청이 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.",
-    });
-    
-    form.reset();
-    setIsSubmitting(false);
+    try {
+      const response = await fetch("/api/advertiser-applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          companyName: data.companyName,
+          ceoName: data.ceoName,
+          phone: data.phone,
+          email: data.email,
+          status: "검토중"
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("신청 중 오류가 발생했습니다");
+      }
+
+      toast({
+        title: "신청 완료!",
+        description: "광고 신청이 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      toast({
+        title: "신청 실패",
+        description: "신청 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

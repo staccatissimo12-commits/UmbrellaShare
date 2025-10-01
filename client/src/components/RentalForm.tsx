@@ -42,17 +42,44 @@ export default function RentalForm() {
 
   const onSubmit = async (data: RentalFormData) => {
     setIsSubmitting(true);
-    console.log("우산 대여 신청:", data);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "신청 완료!",
-      description: "우산 대여 신청이 접수되었습니다. 곧 연락드리겠습니다.",
-    });
-    
-    form.reset();
-    setIsSubmitting(false);
+    try {
+      const response = await fetch("/api/rental-applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rentalDate: format(data.rentalDate, "yyyy-MM-dd"),
+          returnDate: format(data.returnDate, "yyyy-MM-dd"),
+          name: data.name,
+          email: data.email,
+          department: data.department,
+          studentId: data.studentId,
+          phone: data.phone,
+          status: "대여중"
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("신청 중 오류가 발생했습니다");
+      }
+
+      toast({
+        title: "신청 완료!",
+        description: "우산 대여 신청이 접수되었습니다. 곧 연락드리겠습니다.",
+      });
+      
+      form.reset();
+    } catch (error) {
+      toast({
+        title: "신청 실패",
+        description: "신청 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
